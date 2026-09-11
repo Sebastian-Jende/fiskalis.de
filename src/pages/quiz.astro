@@ -200,7 +200,9 @@ const quizData = await Promise.all(
     });
   </script>
 
-  <style>
+  <style is:global>
+    /* Global, not scoped: steps 2 and 3 build their .quiz-option buttons at runtime via
+       document.createElement, so they never get Astro's scoped-style data attribute. */
     .quiz {
       padding: 3rem 0 5rem;
       max-width: 640px;
