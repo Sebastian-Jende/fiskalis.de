@@ -1,0 +1,293 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProviderCard from '../../components/ProviderCard.astro';
+import BreadcrumbSchema from '../../components/JsonLd/BreadcrumbSchema.astro';
+import CollectionPageSchema from '../../components/JsonLd/CollectionPageSchema.astro';
+import {
+  getProvidersByCategory,
+  getRatingSummary,
+  getCityCombosForCategory,
+  getSpecializationCombosForCategory,
+  getFaqEntriesForPage,
+  primaryKategorie,
+} from '../../lib/buildData';
+import { ALL_CATEGORIES, CATEGORY_LABELS } from '../../lib/categoryLabels';
+
+export async function getStaticPaths() {
+  return Promise.all(
+    ALL_CATEGORIES.map(async (kategorie) => ({
+      params: { kategorie },
+      props: {
+        providers: await getProvidersByCategory(kategorie),
+        cityCombos: await getCityCombosForCategory(kategorie),
+        specCombos: await getSpecializationCombosForCategory(kategorie),
+        faq: await getFaqEntriesForPage(kategorie),
+      },
+    }))
+  );
+}
+
+const { kategorie } = Astro.params;
+const { providers, cityCombos, specCombos, faq } = Astro.props;
+const label = CATEGORY_LABELS[kategorie as keyof typeof CATEGORY_LABELS];
+
+const totalReviews = providers.reduce((sum, p) => sum + getRatingSummary(p).count, 0);
+const siteUrl = 'https://fiskalis.de';
+---
+
+<BaseLayout
+  title={label.plural}
+  description={label.metaDescription}
+  canonicalPath={`/${kategorie}/`}
+>
+  <BreadcrumbSchema
+    items={[
+      { name: 'Fiskalis', url: siteUrl },
+      { name: label.plural, url: `${siteUrl}/${kategorie}/` },
+    ]}
+  />
+  <CollectionPageSchema
+    name={`${label.plural} finden`}
+    description={label.metaDescription}
+    url={`${siteUrl}/${kategorie}/`}
+    items={providers.map((p) => ({ name: p.name, url: `${siteUrl}/${primaryKategorie(p)}/${p.slug}/` }))}
+  />
+
+  <section class="cat-hero">
+    <div class="wrap">
+      <p class="eyebrow">{label.plural}</p>
+      <h1>{label.akkusativ[0].toUpperCase() + label.akkusativ.slice(1)} finden</h1>
+      <p class="cat-hero__lede">{label.heroClaim}</p>
+      <div class="cat-hero__stats">
+        <span><strong>{providers.length}</strong> {label.plural}</span>
+        <span><strong>{totalReviews}</strong> Bewertungen</span>
+        <a href="/quiz/">In 2 Min. passenden {label.singular} finden →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap cat-body">
+    <aside class="cat-filters" aria-label="Filter">
+      <div class="cat-filters__group">
+        <label for="filter-ort">Ort</label>
+        <select id="filter-ort">
+          <option value="">Alle Orte</option>
+          {cityCombos.map((c) => <option value={c.city.slug}>{c.city.name}</option>)}
+        </select>
+      </div>
+      <div class="cat-filters__group">
+        <label for="filter-spez">Spezialisierung</label>
+        <select id="filter-spez">
+          <option value="">Alle Spezialisierungen</option>
+          {specCombos.map((s) => <option value={s.specialization.slug}>{s.specialization.name}</option>)}
+        </select>
+      </div>
+      <label class="cat-filters__checkbox">
+        <input type="checkbox" id="filter-remote" />
+        Nur bundesweit / remote
+      </label>
+    </aside>
+
+    <div class="cat-list" id="provider-list">
+      {
+        providers.length === 0 ? (
+          <p class="cat-empty">
+            Aktuell sind noch keine {label.plural} in dieser Kategorie gelistet.{' '}
+            <a href="/fuer-anbieter/">Jetzt als Erste:r listen →</a>
+          </p>
+        ) : (
+          providers.map((p) => (
+            <div
+              class="cat-list__item"
+              data-ort={p.ort?.slug ?? ''}
+              data-spez={p.spezialisierungen.map((s) => s.slug).join(',')}
+              data-remote={p.bundesweit_remote ? '1' : '0'}
+            >
+              <ProviderCard provider={p} />
+            </div>
+          ))
+        )
+      }
+    </div>
+  </section>
+
+  {
+    (cityCombos.length > 0 || specCombos.length > 0) && (
+      <section class="wrap cat-explore">
+        <h2>Mehr entdecken</h2>
+        <div class="cat-explore__grid">
+          {cityCombos.map((c) => (
+            <a href={`/${kategorie}/${c.city.slug}/`}>
+              {label.plural} in {c.city.name} →
+            </a>
+          ))}
+          {specCombos.map((s) => (
+            <a href={`/${kategorie}/${s.specialization.slug}/`}>
+              {label.plural} für {s.specialization.name} →
+            </a>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    faq.length > 0 && (
+      <section class="wrap cat-faq">
+        <h2>Häufige Fragen zu {label.plural}</h2>
+        {faq.map((entry) => (
+          <details>
+            <summary>{entry.frage}</summary>
+            <p set:html={entry.antwort} />
+          </details>
+        ))}
+      </section>
+    )
+  }
+</BaseLayout>
+
+<style>
+  .cat-hero {
+    background: var(--color-bg-sunken);
+    border-bottom: 1px solid var(--color-line);
+    padding: 3rem 0 2.2rem;
+  }
+  .cat-hero h1 {
+    max-width: 20ch;
+  }
+  .cat-hero__lede {
+    max-width: 56ch;
+    color: var(--color-ink-soft);
+    font-size: 1.05rem;
+  }
+  .cat-hero__stats {
+    display: flex;
+    gap: 1.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 1.2rem;
+    font-size: 0.92rem;
+  }
+  .cat-hero__stats strong {
+    font-family: var(--font-mono);
+    color: var(--color-ink);
+  }
+  .cat-hero__stats a {
+    color: var(--color-accent-dark);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .cat-body {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 2.5rem;
+    padding-top: 2.5rem;
+    align-items: start;
+  }
+  .cat-filters {
+    position: sticky;
+    top: 90px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+  .cat-filters__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .cat-filters__group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .cat-filters__group select {
+    font: inherit;
+    padding: 0.5rem 0.6rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-line-strong);
+    background: var(--color-bg-raised);
+  }
+  .cat-filters__checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+  }
+
+  .cat-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.1rem;
+    align-content: start;
+  }
+  .cat-empty {
+    color: var(--color-ink-soft);
+  }
+
+  .cat-explore,
+  .cat-faq {
+    padding: 3rem 0;
+    border-top: 1px solid var(--color-line);
+  }
+  .cat-explore__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.6rem 1.5rem;
+  }
+  .cat-explore__grid a {
+    text-decoration: none;
+    color: var(--color-teal);
+    font-size: 0.92rem;
+  }
+  .cat-faq details {
+    border-bottom: 1px solid var(--color-line);
+    padding: 0.9rem 0;
+  }
+  .cat-faq summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .cat-faq p {
+    color: var(--color-ink-soft);
+    margin: 0.6rem 0 0;
+  }
+
+  @media (max-width: 800px) {
+    .cat-body {
+      grid-template-columns: 1fr;
+    }
+    .cat-filters {
+      position: static;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+  }
+</style>
+
+<script>
+  const ortSelect = document.getElementById('filter-ort') as HTMLSelectElement;
+  const spezSelect = document.getElementById('filter-spez') as HTMLSelectElement;
+  const remoteCheckbox = document.getElementById('filter-remote') as HTMLInputElement;
+  const items = Array.from(document.querySelectorAll<HTMLElement>('.cat-list__item'));
+
+  function applyFilters() {
+    const ort = ortSelect?.value ?? '';
+    const spez = spezSelect?.value ?? '';
+    const remoteOnly = remoteCheckbox?.checked ?? false;
+
+    for (const item of items) {
+      const matchesOrt = !ort || item.dataset.ort === ort;
+      const matchesSpez = !spez || (item.dataset.spez ?? '').split(',').includes(spez);
+      const matchesRemote = !remoteOnly || item.dataset.remote === '1';
+      item.style.display = matchesOrt && matchesSpez && matchesRemote ? '' : 'none';
+    }
+  }
+
+  ortSelect?.addEventListener('change', applyFilters);
+  spezSelect?.addEventListener('change', applyFilters);
+  remoteCheckbox?.addEventListener('change', applyFilters);
+</script>

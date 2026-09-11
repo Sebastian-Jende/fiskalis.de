@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const subject = 'Meldung rechtswidriger Inhalt';
+const body = [
+  'Genaue Bezeichnung/URL des betroffenen Inhalts: ',
+  '',
+  'Begründung, warum der Inhalt rechtswidrig ist: ',
+  '',
+  'Ihre Kontaktdaten (optional, außer bei Rechtsverletzung Dritter an eigenen Rechten): ',
+  '',
+  'Ich erkläre, dass diese Meldung nach bestem Wissen zutreffend ist: [Ja/Nein]',
+].join('\n');
+const mailtoHref = `mailto:info@sebastianjende.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+---
+
+<BaseLayout
+  title="Inhalt melden"
+  description="Rechtswidrige Inhalte auf Fiskalis melden — Melde- und Abhilfeverfahren gemäß Art. 11, 12, 16 DSA."
+  canonicalPath="/inhalt-melden/"
+>
+  <div class="legal">
+    <h1>Rechtswidrige Inhalte melden</h1>
+    <p>
+      Sollten Sie auf Fiskalis Inhalte (z. B. ein Anbieterprofil oder eine Bewertung) entdecken,
+      die Sie für rechtswidrig halten, können Sie uns dies formlos per E-Mail melden. Bitte geben
+      Sie dabei an:
+    </p>
+    <ul>
+      <li>die genaue Bezeichnung/URL des betroffenen Inhalts,</li>
+      <li>eine Begründung, warum der Inhalt rechtswidrig ist,</li>
+      <li>optional Ihre Kontaktdaten für Rückfragen (Pflicht, wenn Sie eine Verletzung eigener Rechte melden),</li>
+      <li>eine Erklärung, dass die Meldung nach bestem Wissen zutreffend ist.</li>
+    </ul>
+    <p>
+      Wir prüfen jede eingehende Meldung zeitnah und ergreifen angemessene Maßnahmen (Entfernung,
+      Sperrung oder Ablehnung der Meldung mit Begründung).
+    </p>
+    <a class="btn btn-accent" href={mailtoHref}>Meldung per E-Mail senden</a>
+    <p class="inhalt-melden__fallback">
+      Alternativ direkt an: <a href="mailto:info@sebastianjende.com">info@sebastianjende.com</a>
+    </p>
+  </div>
+
+  <style>
+    .inhalt-melden__fallback {
+      margin-top: 1rem;
+      font-size: 0.88rem;
+      color: var(--color-ink-faint);
+    }
+  </style>
+</BaseLayout>

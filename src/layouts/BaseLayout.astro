@@ -1,0 +1,115 @@
+---
+import '../styles/global.css';
+import { ALL_CATEGORIES, CATEGORY_LABELS } from '../lib/categoryLabels';
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath: string;
+  ogImage?: string;
+  /** Set false only for pages intentionally excluded from search results (e.g. thin
+   * utility pages) — see MIN_PROVIDERS_PER_COMBO in buildData.ts for why some
+   * programmatic pages simply aren't generated at all rather than noindexed. */
+  index?: boolean;
+}
+
+const { title, description, canonicalPath, ogImage, index = true } = Astro.props;
+const siteUrl = 'https://fiskalis.de';
+const canonicalUrl = new URL(canonicalPath, siteUrl).toString();
+const plausibleDomain = import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN;
+
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Fiskalis',
+  url: siteUrl,
+  logo: `${siteUrl}/favicon.svg`,
+  description:
+    'Fiskalis ist ein unabhängiges Verzeichnis für geprüfte Steuerberater, Finanzberater und Buchhalter in Deutschland.',
+};
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta name="generator" content={Astro.generator} />
+    {!index && <meta name="robots" content="noindex,follow" />}
+
+    <title>{title} | Fiskalis</title>
+    <meta name="description" content={description} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Fiskalis" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(organizationSchema)} />
+
+    {
+      plausibleDomain && (
+        <script is:inline defer data-domain={plausibleDomain} src="https://plausible.io/js/script.js" />
+      )
+    }
+    <slot name="head" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-header__inner">
+        <a class="site-header__logo" href="/">
+          <span class="mark">F</span> Fiskalis
+        </a>
+        <nav class="site-header__nav">
+          {
+            ALL_CATEGORIES.map((kat) => (
+              <a href={`/${kat}/`}>{CATEGORY_LABELS[kat].plural}</a>
+            ))
+          }
+          <a href="/fuer-anbieter/">Für Anbieter</a>
+        </nav>
+        <a class="btn btn-accent site-header__cta" href="/quiz/">In 2 Min. passenden Berater finden</a>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer__inner">
+        <div class="site-footer__col">
+          <a class="site-footer__logo" href="/">Fiskalis</a>
+        </div>
+        <div class="site-footer__col">
+          <h4>Berater finden</h4>
+          {
+            ALL_CATEGORIES.map((kat) => (
+              <a href={`/${kat}/`}>{CATEGORY_LABELS[kat].plural}</a>
+            ))
+          }
+          <a href="/quiz/">Matching-Quiz</a>
+        </div>
+        <div class="site-footer__col">
+          <h4>Für Anbieter</h4>
+          <a href="/fuer-anbieter/">Jetzt listen</a>
+          <a href="/wie-wir-pruefen/">Wie wir prüfen</a>
+        </div>
+        <div class="site-footer__col">
+          <h4>Rechtliches</h4>
+          <a href="/impressum/">Impressum</a>
+          <a href="/datenschutz/">Datenschutz</a>
+          <a href="/nutzungsbedingungen/">Nutzungsbedingungen</a>
+          <a href="/anbieter-agb/">Anbieter-AGB</a>
+          <a href="/inhalt-melden/">Inhalt melden</a>
+        </div>
+      </div>
+      <p class="site-footer__copy">&copy; {new Date().getFullYear()} Fiskalis. Fiskalis ist ein unabhängiges Verzeichnis und erbringt selbst keine Steuer-, Finanz- oder Rechtsberatung.</p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,68 @@
+---
+interface Props {
+  average: number | null;
+  count: number;
+  size?: 'sm' | 'md';
+}
+
+const { average, count, size = 'md' } = Astro.props;
+const rounded = average ? Math.round(average * 2) / 2 : 0;
+---
+
+{
+  average !== null ? (
+    <span class:list={['star-rating', `star-rating--${size}`]}>
+      <span class="star-rating__stars" style={`--fill: ${(rounded / 5) * 100}%`} aria-hidden="true">
+        ★★★★★
+      </span>
+      <span class="star-rating__value">{average.toFixed(1)}</span>
+      <span class="star-rating__count">
+        ({count} {count === 1 ? 'Bewertung' : 'Bewertungen'})
+      </span>
+    </span>
+  ) : (
+    <span class="star-rating star-rating--empty">Noch keine Bewertungen</span>
+  )
+}
+
+<style>
+  .star-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--color-ink-soft);
+  }
+  .star-rating--empty {
+    color: var(--color-ink-faint);
+    font-style: italic;
+  }
+  .star-rating__stars {
+    position: relative;
+    display: inline-block;
+    font-size: 1rem;
+    line-height: 1;
+    letter-spacing: 1px;
+    color: var(--color-line-strong);
+  }
+  .star-rating__stars::before {
+    content: '★★★★★';
+    position: absolute;
+    inset: 0;
+    width: var(--fill);
+    overflow: hidden;
+    color: var(--color-accent);
+    white-space: nowrap;
+  }
+  .star-rating--sm .star-rating__stars {
+    font-size: 0.85rem;
+  }
+  .star-rating__value {
+    font-weight: 700;
+    color: var(--color-ink);
+    font-family: var(--font-mono);
+  }
+  .star-rating__count {
+    color: var(--color-ink-faint);
+  }
+</style>

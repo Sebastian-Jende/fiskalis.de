@@ -1,0 +1,223 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getFaqEntriesForPage, getListedProviders } from '../lib/buildData';
+
+const faq = await getFaqEntriesForPage('fuer-anbieter');
+const providerCount = (await getListedProviders()).length;
+---
+
+<BaseLayout
+  title="Für Anbieter"
+  description="Listen Sie Ihre Steuerberatung, Finanzberatung oder Buchhaltung auf Fiskalis — 500–1.000 € pro Jahr, keine Vermittlungsprovision."
+  canonicalPath="/fuer-anbieter/"
+>
+  <section class="pro-hero">
+    <div class="wrap">
+      <p class="eyebrow">Für Anbieter</p>
+      <h1>Werden Sie gefunden von Mandanten, die bereits suchen.</h1>
+      <p class="pro-hero__lede">
+        Fiskalis ist das Verzeichnis für Steuerberater, Finanzberater und Buchhalter in
+        Deutschland. Ein Jahres-Listing, keine Vermittlungsprovision — Sie behalten jeden Euro,
+        den Ihre Mandanten Ihnen zahlen.
+      </p>
+      <a class="btn btn-accent" href="#bewerbung">Jetzt bewerben</a>
+      <p class="pro-hero__stat">{providerCount} Anbieter bereits gelistet</p>
+    </div>
+  </section>
+
+  <section class="wrap pricing">
+    <h2>Preise</h2>
+    <div class="pricing__grid">
+      <div class="card pricing__card">
+        <h3>Standard</h3>
+        <p class="pricing__price">500 € <span>/ Jahr</span></p>
+        <ul>
+          <li>Vollständiges Profil</li>
+          <li>Bis zu 3 Spezialisierungen</li>
+          <li>Direkte Kontaktdaten im Profil</li>
+          <li>Bewertungsanzeige</li>
+        </ul>
+      </div>
+      <div class="card pricing__card pricing__card--featured">
+        <p class="pricing__badge">Empfohlen</p>
+        <h3>Premium</h3>
+        <p class="pricing__price">1.000 € <span>/ Jahr</span></p>
+        <ul>
+          <li>Alles aus Standard</li>
+          <li>Hervorgehobene Platzierung in der Kategorie-Suche</li>
+          <li>Unbegrenzte Spezialisierungen</li>
+          <li>„Featured" auf zugehörigen Stadt-/Themenseiten</li>
+        </ul>
+      </div>
+    </div>
+    <p class="pricing__note">
+      Keine Vermittlungsprovision, niemals. Was Ihre Mandanten Ihnen zahlen, bleibt zu 100 % bei
+      Ihnen. Wir garantieren keine bestimmte Anzahl an Anfragen — Details in den
+      <a href="/anbieter-agb/">Vertragsbedingungen</a>.
+    </p>
+  </section>
+
+  <section class="wrap process">
+    <h2>So funktioniert die Aufnahme</h2>
+    <ol class="process__list">
+      <li><strong>Bewerbung senden.</strong> Kurze E-Mail mit den wichtigsten Eckdaten — siehe unten.</li>
+      <li><strong>Wir prüfen.</strong> Abgleich mit dem Steuerberaterverzeichnis der BStBK bzw. dem Vermittlerregister — siehe <a href="/wie-wir-pruefen/">wie wir prüfen</a>.</li>
+      <li><strong>Zahlung &amp; Freischaltung.</strong> Nach Bestätigung erhalten Sie einen Zahlungslink; Ihr Profil geht direkt danach live.</li>
+    </ol>
+  </section>
+
+  {
+    faq.length > 0 && (
+      <section class="wrap pro-faq">
+        <h2>Häufige Fragen</h2>
+        {faq.map((entry) => (
+          <details>
+            <summary>{entry.frage}</summary>
+            <p set:html={entry.antwort} />
+          </details>
+        ))}
+      </section>
+    )
+  }
+
+  <section class="wrap application" id="bewerbung">
+    <h2>Jetzt bewerben</h2>
+    <p class="application__lede">
+      Schreiben Sie uns kurz per E-Mail — Kanzlei-/Firmenname, Kategorie, Ort und ein bis zwei
+      Sätze zu Ihrer Praxis reichen für den Anfang.
+    </p>
+    <a
+      class="btn btn-accent"
+      href={`mailto:info@sebastianjende.com?subject=${encodeURIComponent('Bewerbung für Fiskalis-Listing')}&body=${encodeURIComponent('Kanzlei-/Firmenname: \nAnsprechpartner:in: \nKategorie (Steuerberater/Finanzberater/Buchhalter): \nOrt: \nWebsite: \n\nKurz zu Ihrer Kanzlei/Praxis:\n')}`}
+    >
+      Bewerbung per E-Mail senden
+    </a>
+  </section>
+</BaseLayout>
+
+<style>
+  .pro-hero {
+    background: var(--color-bg-sunken);
+    border-bottom: 1px solid var(--color-line);
+    padding: 3.5rem 0;
+  }
+  .pro-hero h1 {
+    max-width: 18ch;
+  }
+  .pro-hero__lede {
+    max-width: 58ch;
+    color: var(--color-ink-soft);
+    font-size: 1.05rem;
+  }
+  .pro-hero__stat {
+    margin-top: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--color-ink-faint);
+  }
+
+  .pricing {
+    padding: 3.5rem 0 2rem;
+  }
+  .pricing__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  .pricing__card {
+    padding: 1.8rem 2rem;
+    position: relative;
+  }
+  .pricing__card--featured {
+    border-color: var(--color-accent);
+  }
+  .pricing__badge {
+    position: absolute;
+    top: -0.7rem;
+    right: 1.5rem;
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .pricing__price {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0.5rem 0 1.2rem;
+  }
+  .pricing__price span {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--color-ink-faint);
+    font-family: var(--font-sans);
+  }
+  .pricing__card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    font-size: 0.92rem;
+    color: var(--color-ink-soft);
+  }
+  .pricing__card li::before {
+    content: '✓ ';
+    color: var(--color-teal);
+    font-weight: 700;
+  }
+  .pricing__note {
+    margin-top: 1.8rem;
+    color: var(--color-ink-faint);
+    font-size: 0.88rem;
+    max-width: 60ch;
+  }
+
+  .process {
+    padding: 2.5rem 0;
+    border-top: 1px solid var(--color-line);
+  }
+  .process__list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-left: 1.3rem;
+  }
+  .process__list li {
+    color: var(--color-ink-soft);
+  }
+
+  .pro-faq {
+    padding: 2.5rem 0;
+    border-top: 1px solid var(--color-line);
+  }
+  .pro-faq details {
+    border-bottom: 1px solid var(--color-line);
+    padding: 0.9rem 0;
+  }
+  .pro-faq summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .pro-faq p {
+    color: var(--color-ink-soft);
+    margin: 0.6rem 0 0;
+  }
+
+  .application {
+    padding: 3rem 0 5rem;
+    border-top: 1px solid var(--color-line);
+  }
+  .application__lede {
+    max-width: 56ch;
+    color: var(--color-ink-soft);
+    margin: 0.8rem 0 1.5rem;
+  }
+</style>

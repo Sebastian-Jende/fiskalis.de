@@ -1,0 +1,278 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { ALL_CATEGORIES, CATEGORY_LABELS } from '../lib/categoryLabels';
+import { getProvidersByCategory, getRatingSummary, primaryKategorie } from '../lib/buildData';
+
+// All quiz matching happens client-side against this small, pre-computed dataset —
+// no fetch, no backend, just plain JS filtering. Kept intentionally lean (only the
+// fields the quiz needs) so this stays a fast, isolated island rather than shipping
+// full profile payloads to the client.
+const quizData = await Promise.all(
+  ALL_CATEGORIES.map(async (kategorie) => {
+    const providers = await getProvidersByCategory(kategorie);
+    return {
+      kategorie,
+      label: CATEGORY_LABELS[kategorie].singular,
+      providers: providers.map((p) => ({
+        slug: p.slug,
+        name: p.name,
+        tagline: p.tagline,
+        ort: p.ort?.name ?? null,
+        remote: p.bundesweit_remote,
+        spezialisierungen: p.spezialisierungen.map((s) => ({ slug: s.slug, name: s.name })),
+        rating: getRatingSummary(p).average,
+        reviewCount: getRatingSummary(p).count,
+        href: `/${primaryKategorie(p)}/${p.slug}/`,
+      })),
+    };
+  })
+);
+---
+
+<BaseLayout
+  title="Matching-Quiz"
+  description="In 2 Minuten zum passenden Steuerberater, Finanzberater oder Buchhalter — beantworten Sie drei kurze Fragen."
+  canonicalPath="/quiz/"
+>
+  <section class="wrap quiz">
+    <p class="eyebrow">Matching-Quiz</p>
+    <h1>In 2 Minuten zum passenden Berater</h1>
+
+    <div class="quiz-card card" id="quiz-card">
+      <div class="quiz-step" data-step="1">
+        <p class="quiz-step__label">Schritt 1 von 3</p>
+        <h2>Was ist Ihr Anliegen?</h2>
+        <div class="quiz-options" id="step-kategorie">
+          {
+            ALL_CATEGORIES.map((k) => (
+              <button type="button" class="quiz-option" data-value={k}>
+                {CATEGORY_LABELS[k].singular}
+                <span>{CATEGORY_LABELS[k].heroClaim}</span>
+              </button>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="quiz-step" data-step="2" hidden>
+        <p class="quiz-step__label">Schritt 2 von 3</p>
+        <h2>Wo suchen Sie?</h2>
+        <div class="quiz-options" id="step-ort"></div>
+      </div>
+
+      <div class="quiz-step" data-step="3" hidden>
+        <p class="quiz-step__label">Schritt 3 von 3</p>
+        <h2>Gibt es eine Spezialisierung, die Ihnen wichtig ist?</h2>
+        <div class="quiz-options" id="step-spez"></div>
+      </div>
+
+      <div class="quiz-step quiz-result" data-step="result" hidden>
+        <p class="quiz-step__label">Ihr Match</p>
+        <div id="result-content"></div>
+        <button type="button" class="btn btn-secondary" id="quiz-restart">Quiz erneut starten</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="application/json" id="quiz-data" is:inline set:html={JSON.stringify(quizData)} />
+
+  <script>
+    interface QuizProvider {
+      slug: string;
+      name: string;
+      tagline: string | null;
+      ort: string | null;
+      remote: boolean;
+      spezialisierungen: { slug: string; name: string }[];
+      rating: number | null;
+      reviewCount: number;
+      href: string;
+    }
+    interface QuizCategory {
+      kategorie: string;
+      label: string;
+      providers: QuizProvider[];
+    }
+
+    const data: QuizCategory[] = JSON.parse(document.getElementById('quiz-data')!.textContent!);
+    const card = document.getElementById('quiz-card')!;
+    const steps = {
+      1: card.querySelector<HTMLElement>('[data-step="1"]')!,
+      2: card.querySelector<HTMLElement>('[data-step="2"]')!,
+      3: card.querySelector<HTMLElement>('[data-step="3"]')!,
+      result: card.querySelector<HTMLElement>('[data-step="result"]')!,
+    };
+
+    const answers = { kategorie: '', ort: '', spez: '' };
+
+    function showStep(step: keyof typeof steps) {
+      for (const s of Object.values(steps)) s.hidden = true;
+      steps[step].hidden = false;
+    }
+
+    function renderOrtStep() {
+      const category = data.find((c) => c.kategorie === answers.kategorie);
+      const container = document.getElementById('step-ort')!;
+      const cities = [...new Set(category?.providers.map((p) => p.ort).filter(Boolean))] as string[];
+      container.innerHTML = '';
+      const anyBtn = makeOption('Bundesweit / egal', '');
+      container.appendChild(anyBtn);
+      for (const city of cities) container.appendChild(makeOption(city, city));
+    }
+
+    function renderSpezStep() {
+      const category = data.find((c) => c.kategorie === answers.kategorie);
+      const container = document.getElementById('step-spez')!;
+      const specs = new Map<string, string>();
+      for (const p of category?.providers ?? []) {
+        for (const s of p.spezialisierungen) specs.set(s.slug, s.name);
+      }
+      container.innerHTML = '';
+      container.appendChild(makeOption('Keine Präferenz', ''));
+      for (const [slug, name] of specs) container.appendChild(makeOption(name, slug));
+    }
+
+    function makeOption(labelText: string, value: string): HTMLButtonElement {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'quiz-option';
+      btn.dataset.value = value;
+      btn.textContent = labelText;
+      return btn;
+    }
+
+    function showResult() {
+      const category = data.find((c) => c.kategorie === answers.kategorie)!;
+      let pool = category.providers;
+
+      const withCity = answers.ort ? pool.filter((p) => p.ort === answers.ort || p.remote) : pool;
+      const withSpez = answers.spez
+        ? withCity.filter((p) => p.spezialisierungen.some((s) => s.slug === answers.spez))
+        : withCity;
+
+      const finalPool = withSpez.length > 0 ? withSpez : withCity.length > 0 ? withCity : pool;
+      const match = [...finalPool].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))[0];
+
+      const resultEl = document.getElementById('result-content')!;
+      if (!match) {
+        resultEl.innerHTML = `<p>Für diese Kombination haben wir noch kein Profil — <a href="/${answers.kategorie}/">alle ${category.label} ansehen →</a></p>`;
+      } else {
+        resultEl.innerHTML = `
+          <p class="quiz-result__kategorie">${category.label}</p>
+          <h3>${match.name}</h3>
+          ${match.tagline ? `<p class="quiz-result__tagline">${match.tagline}</p>` : ''}
+          ${match.rating ? `<p class="quiz-result__rating">★ ${match.rating.toFixed(1)} (${match.reviewCount} Bewertungen)</p>` : '<p class="quiz-result__rating">Noch keine Bewertungen</p>'}
+          <a class="btn btn-accent" href="${match.href}">Profil ansehen →</a>
+          <a class="quiz-result__all" href="/${answers.kategorie}/">Alle ${category.label} ansehen →</a>
+        `;
+      }
+      showStep('result');
+    }
+
+    document.getElementById('step-kategorie')!.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.quiz-option');
+      if (!btn) return;
+      answers.kategorie = btn.dataset.value!;
+      renderOrtStep();
+      showStep(2);
+    });
+
+    document.getElementById('step-ort')!.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.quiz-option');
+      if (!btn) return;
+      answers.ort = btn.dataset.value!;
+      renderSpezStep();
+      showStep(3);
+    });
+
+    document.getElementById('step-spez')!.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.quiz-option');
+      if (!btn) return;
+      answers.spez = btn.dataset.value!;
+      showResult();
+    });
+
+    document.getElementById('quiz-restart')!.addEventListener('click', () => {
+      answers.kategorie = '';
+      answers.ort = '';
+      answers.spez = '';
+      showStep(1);
+    });
+  </script>
+
+  <style>
+    .quiz {
+      padding: 3rem 0 5rem;
+      max-width: 640px;
+    }
+    .quiz-card {
+      margin-top: 2rem;
+      padding: 2rem 2.2rem;
+    }
+    .quiz-step__label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-accent);
+      margin: 0 0 0.4rem;
+    }
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-top: 1.2rem;
+    }
+    .quiz-option {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.2rem;
+      padding: 0.85rem 1.1rem;
+      border-radius: 8px;
+      border: 1px solid var(--color-line-strong);
+      background: var(--color-bg-raised);
+      font: inherit;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      color: var(--color-ink);
+    }
+    .quiz-option:hover {
+      border-color: var(--color-accent);
+      background: var(--color-accent-soft);
+    }
+    .quiz-option span {
+      font-weight: 400;
+      font-size: 0.85rem;
+      color: var(--color-ink-faint);
+    }
+    .quiz-result h3 {
+      margin-top: 0.3rem;
+    }
+    .quiz-result__kategorie {
+      margin: 0;
+      color: var(--color-accent-dark);
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .quiz-result__tagline {
+      color: var(--color-ink-soft);
+    }
+    .quiz-result__rating {
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+    .quiz-result__all {
+      display: block;
+      margin-top: 1rem;
+      font-size: 0.88rem;
+      color: var(--color-teal);
+    }
+    #quiz-restart {
+      margin-top: 1.5rem;
+    }
+  </style>
+</BaseLayout>

@@ -1,0 +1,264 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { ALL_CATEGORIES, CATEGORY_LABELS } from '../lib/categoryLabels';
+import { getProvidersByCategory, getFaqEntriesForPage } from '../lib/buildData';
+
+const counts = await Promise.all(
+  ALL_CATEGORIES.map(async (k) => ({ kategorie: k, count: (await getProvidersByCategory(k)).length }))
+);
+const faq = await getFaqEntriesForPage('home');
+---
+
+<BaseLayout
+  title="Geprüfte Steuerberater, Finanzberater & Buchhalter"
+  description="Fiskalis ist das unabhängige Verzeichnis für geprüfte Steuerberater, Finanzberater und Buchhalter in Deutschland — mit echten Mandanten-Bewertungen."
+  canonicalPath="/"
+>
+  <section class="hero">
+    <div class="wrap hero__inner">
+      <p class="eyebrow">Fiskalis · unabhängiges Verzeichnis</p>
+      <h1>Finden Sie Ihren nächsten Finanzpartner.</h1>
+      <p class="hero__lede">
+        Steuerberater, Finanzberater und Buchhalter, geprüft gegen das öffentliche
+        Steuerberaterverzeichnis und Vermittlerregister — mit echten Bewertungen von Mandanten,
+        die schon dort waren, wo Sie gerade stehen.
+      </p>
+
+      <div class="hero__selector">
+        <p class="hero__selector-label">Ich suche…</p>
+        <div class="hero__selector-options">
+          {
+            ALL_CATEGORIES.map((k) => (
+              <a class="hero__selector-option" href={`/${k}/`}>
+                {CATEGORY_LABELS[k].akkusativ}
+                <span>→</span>
+              </a>
+            ))
+          }
+        </div>
+        <a class="hero__quiz" href="/quiz/">Nicht sicher? In 2 Minuten zum passenden Berater →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap ways">
+    <h2>Vier Wege, Fiskalis zu nutzen</h2>
+    <div class="ways__grid">
+      <div class="ways__item">
+        <span class="ways__num">01</span>
+        <h3>Nach Ort &amp; Spezialisierung filtern</h3>
+        <p>Suchen Sie gezielt nach Standort, Branchenerfahrung und Leistungsumfang — statt nach dem erstbesten Google-Treffer zu greifen.</p>
+      </div>
+      <div class="ways__item">
+        <span class="ways__num">02</span>
+        <h3>Echte Bewertungen vor der Anfrage lesen</h3>
+        <p>Jede Bewertung stammt von echten Mandanten — gut wie schlecht, bevor Sie eine erste Nachricht schreiben.</p>
+      </div>
+      <div class="ways__item">
+        <span class="ways__num">03</span>
+        <h3>Selbst eine Bewertung hinterlassen</h3>
+        <p>Bereits mit einem Berater zusammengearbeitet? Schreiben Sie uns Ihre Erfahrung — kostenlos, wir veröffentlichen sie auf dem jeweiligen Profil.</p>
+      </div>
+      <div class="ways__item">
+        <span class="ways__num">04</span>
+        <h3>Von den richtigen Mandanten gefunden werden</h3>
+        <p>Sie sind Steuerberater, Finanzberater oder Buchhalter? <a href="/fuer-anbieter/">Listen Sie sich</a> und werden für genau Ihre Zielgruppe sichtbar.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap categories">
+    <h2>Nach Kategorie durchsuchen</h2>
+    <div class="categories__grid">
+      {
+        counts.map(({ kategorie, count }) => (
+          <a class="card categories__card" href={`/${kategorie}/`}>
+            <h3>{CATEGORY_LABELS[kategorie].plural}</h3>
+            <p>{CATEGORY_LABELS[kategorie].heroClaim}</p>
+            <span class="categories__count">{count} gelistet →</span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="wrap methodology">
+    <div class="card methodology__card">
+      <h2>Wie wir prüfen</h2>
+      <p>
+        Jeder Eintrag wird vor Freischaltung gegen ein öffentliches Register abgeglichen — das
+        Steuerberaterverzeichnis der Bundessteuerberaterkammer für Steuerberater, das
+        Vermittlerregister für Finanzanlagen- und Honorarberater. Kein Berater kann sich seine
+        eigene Bewertung schreiben oder kaufen.
+      </p>
+      <a href="/wie-wir-pruefen/">Mehr zu unserem Prüfprozess →</a>
+    </div>
+  </section>
+
+  {
+    faq.length > 0 && (
+      <section class="wrap home-faq">
+        <h2>Häufige Fragen</h2>
+        {faq.map((entry) => (
+          <details>
+            <summary>{entry.frage}</summary>
+            <p set:html={entry.antwort} />
+          </details>
+        ))}
+      </section>
+    )
+  }
+</BaseLayout>
+
+<style>
+  .hero {
+    background: var(--color-bg-sunken);
+    border-bottom: 1px solid var(--color-line);
+    padding: 4rem 0 3.5rem;
+  }
+  .hero__inner {
+    max-width: 760px;
+  }
+  .hero h1 {
+    max-width: 18ch;
+  }
+  .hero__lede {
+    font-size: 1.1rem;
+    color: var(--color-ink-soft);
+    max-width: 58ch;
+  }
+  .hero__selector {
+    margin-top: 2rem;
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-line);
+    border-radius: 12px;
+    padding: 1.3rem 1.5rem;
+    box-shadow: var(--shadow-card);
+  }
+  .hero__selector-label {
+    margin: 0 0 0.8rem;
+    font-weight: 600;
+    color: var(--color-ink-faint);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .hero__selector-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .hero__selector-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.1rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-line-strong);
+    text-decoration: none;
+    color: var(--color-ink);
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  .hero__selector-option:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent-dark);
+  }
+  .hero__quiz {
+    display: inline-block;
+    margin-top: 1rem;
+    color: var(--color-teal);
+    font-weight: 600;
+    font-size: 0.92rem;
+    text-decoration: none;
+  }
+
+  .ways,
+  .categories,
+  .methodology,
+  .home-faq {
+    padding: 3.5rem 0;
+  }
+  .ways__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+  .ways__num {
+    font-family: var(--font-serif);
+    font-size: 1.6rem;
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+  .ways__item h3 {
+    font-size: 1.05rem;
+    margin: 0.4rem 0 0.5rem;
+  }
+  .ways__item p {
+    color: var(--color-ink-soft);
+    font-size: 0.94rem;
+  }
+  .ways__item a {
+    color: var(--color-teal);
+  }
+
+  .categories {
+    border-top: 1px solid var(--color-line);
+  }
+  .categories__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.2rem;
+    margin-top: 2rem;
+  }
+  .categories__card {
+    display: block;
+    padding: 1.6rem;
+    text-decoration: none;
+    color: inherit;
+  }
+  .categories__card p {
+    color: var(--color-ink-soft);
+    font-size: 0.92rem;
+  }
+  .categories__count {
+    color: var(--color-accent-dark);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .methodology {
+    border-top: 1px solid var(--color-line);
+  }
+  .methodology__card {
+    padding: 2rem 2.2rem;
+    background: var(--color-accent-soft);
+    border-color: var(--color-accent-soft-line, var(--color-line));
+  }
+  .methodology__card p {
+    color: var(--color-ink-soft);
+    max-width: 68ch;
+  }
+  .methodology__card a {
+    color: var(--color-accent-dark);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .home-faq {
+    border-top: 1px solid var(--color-line);
+  }
+  .home-faq details {
+    border-bottom: 1px solid var(--color-line);
+    padding: 0.9rem 0;
+  }
+  .home-faq summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .home-faq p {
+    color: var(--color-ink-soft);
+    margin: 0.6rem 0 0;
+  }
+</style>

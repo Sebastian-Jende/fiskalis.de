@@ -1,0 +1,74 @@
+---
+import { getRatingSummary } from '../../lib/buildData';
+import type { Kategorie, Provider } from '../../lib/types';
+
+interface Props {
+  provider: Provider;
+  kategorie: Kategorie;
+  url: string;
+}
+
+const { provider, kategorie, url } = Astro.props;
+
+// AccountingService/FinancialService (LocalBusiness-Subtypen) statt des generischen,
+// mehrdeutigen ProfessionalService — siehe SEO-Recherche zu Fiskalis, Abschnitt 2.
+const schemaType = kategorie === 'finanzberater' ? 'FinancialService' : 'AccountingService';
+
+const rating = getRatingSummary(provider);
+
+const schema: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': schemaType,
+  name: provider.name,
+  url,
+  telephone: provider.telefon ?? undefined,
+  email: provider.email ?? undefined,
+  image: provider.logo_url ?? undefined,
+  description: provider.tagline ?? undefined,
+  ...(provider.strasse || provider.ort
+    ? {
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: provider.strasse ?? undefined,
+          postalCode: provider.plz ?? undefined,
+          addressLocality: provider.ort?.name ?? undefined,
+          addressRegion: provider.ort?.bundesland ?? undefined,
+          addressCountry: 'DE',
+        },
+      }
+    : {}),
+  ...(provider.latitude && provider.longitude
+    ? {
+        geo: {
+          '@type': 'GeoCoordinates',
+          latitude: provider.latitude,
+          longitude: provider.longitude,
+        },
+      }
+    : {}),
+  ...(provider.bundesweit_remote ? { areaServed: 'DE' } : {}),
+  // Aggregate-Ratings werden ausschließlich aus echten, freigegebenen Bewertungen
+  // errechnet (siehe getRatingSummary) — nie redaktionell gesetzt, wie von Google
+  // für Review-/AggregateRating-Snippets vorausgesetzt.
+  ...(rating.count > 0 && rating.average
+    ? {
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: rating.average,
+          reviewCount: rating.count,
+        },
+        review: provider.reviews
+          .filter((r) => r.freigegeben)
+          .slice(0, 10)
+          .map((r) => ({
+            '@type': 'Review',
+            author: { '@type': 'Person', name: r.name },
+            reviewBody: r.text,
+            datePublished: r.datum ?? undefined,
+          })),
+      }
+    : {}),
+};
+---
+
+<script type="application/ld+json" is:inline set:html={JSON.stringify(schema)} />

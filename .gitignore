@@ -1,0 +1,18 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# env
+.env
+.env.production
+
+# wrangler
+.wrangler/
+
+# editor / os
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
