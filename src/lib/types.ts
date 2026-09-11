@@ -61,7 +61,6 @@ export interface Provider {
   gegruendet: number | null;
 
   kammer_id: string | null;
-  verifiziert_am: string | null;
 
   logo_url: string | null;
   listing_tier: ListingTier;

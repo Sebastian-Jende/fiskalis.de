@@ -86,10 +86,10 @@ if (props.kind === 'stadt') {
   listingProviders = combo.providers;
   listingIntro =
     combo.city.intro_text ??
-    `${combo.providers.length} geprüfte ${label.plural} in ${combo.city.name}${combo.city.bundesland ? ` (${combo.city.bundesland})` : ''} im Vergleich — mit echten Mandanten-Bewertungen und Spezialisierungen auf einen Blick.`;
+    `${combo.providers.length} ${label.plural} in ${combo.city.name}${combo.city.bundesland ? ` (${combo.city.bundesland})` : ''} im Vergleich — mit echten Mandanten-Bewertungen und Spezialisierungen auf einen Blick.`;
   listingMetaDescription =
     combo.city.meta_beschreibung ??
-    `${label.plural} in ${combo.city.name} finden: ${combo.providers.length} geprüfte Profile mit Bewertungen vergleichen.`;
+    `${label.plural} in ${combo.city.name} finden: ${combo.providers.length} Profile mit Bewertungen vergleichen.`;
   const specCombos = await getSpecializationCombosForCategory(kategorie);
   exploreLinks = specCombos.map((s) => ({
     label: `${label.plural} für ${s.specialization.name} →`,
@@ -103,10 +103,10 @@ if (props.kind === 'stadt') {
   listingProviders = combo.providers;
   listingIntro =
     combo.specialization.intro_text ??
-    `${combo.providers.length} geprüfte ${label.plural} mit Spezialisierung auf ${combo.specialization.name} — mit echten Mandanten-Bewertungen im Vergleich.`;
+    `${combo.providers.length} ${label.plural} mit Spezialisierung auf ${combo.specialization.name} — mit echten Mandanten-Bewertungen im Vergleich.`;
   listingMetaDescription =
     combo.specialization.meta_beschreibung ??
-    `${label.plural} für ${combo.specialization.name}: ${combo.providers.length} geprüfte Profile mit Bewertungen vergleichen.`;
+    `${label.plural} für ${combo.specialization.name}: ${combo.providers.length} Profile mit Bewertungen vergleichen.`;
   const cityCombos = await getCityCombosForCategory(kategorie);
   exploreLinks = cityCombos.map((c) => ({
     label: `${label.plural} in ${c.city.name} →`,
@@ -204,7 +204,6 @@ if (props.kind === 'anbieter') {
           </nav>
           <div class="profile-hero__badges">
             {provider.kategorien.map((k) => <span class="badge-pill">{CATEGORY_LABELS[k].singular}</span>)}
-            {provider.status === 'approved' && <span class="badge-pill badge-pill--accent">✓ Geprüft von Fiskalis</span>}
           </div>
           <h1>{provider.name}</h1>
           {provider.tagline && <p class="profile-hero__tagline">{provider.tagline}</p>}

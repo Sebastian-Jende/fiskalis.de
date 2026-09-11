@@ -11,14 +11,12 @@ interface Props {
 const { provider } = Astro.props;
 const rating = getRatingSummary(provider);
 const href = `/${primaryKategorie(provider)}/${provider.slug}/`;
-const isVerified = provider.status === 'approved';
 ---
 
 <a class="provider-card card" href={href}>
   <div class="provider-card__head">
     <div class="provider-card__kategorien">
       {provider.kategorien.map((k) => <span class="badge-pill">{CATEGORY_LABELS[k].singular}</span>)}
-      {isVerified && <span class="badge-pill badge-pill--accent">✓ Geprüft</span>}
     </div>
     <StarRating average={rating.average} count={rating.count} size="sm" />
   </div>

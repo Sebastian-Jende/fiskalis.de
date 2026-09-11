@@ -18,16 +18,16 @@ export const CATEGORY_LABELS: Record<Kategorie, CategoryLabel> = {
     akkusativ: 'einen Steuerberater',
     heroClaim: 'Steuererklärung, Buchführung und Steuerstrategie — von zugelassenen Kanzleien.',
     metaDescription:
-      'Geprüfte Steuerberater in Deutschland finden: nach Ort, Spezialisierung und echten Mandanten-Bewertungen filtern.',
+      'Steuerberater in Deutschland finden: nach Ort, Spezialisierung und echten Mandanten-Bewertungen filtern.',
   },
   finanzberater: {
     slug: 'finanzberater',
     singular: 'Finanzberater',
     plural: 'Finanzberater',
     akkusativ: 'einen Finanzberater',
-    heroClaim: 'Vermögensaufbau, Altersvorsorge und Honorarberatung — unabhängig geprüft.',
+    heroClaim: 'Vermögensaufbau, Altersvorsorge und Honorarberatung.',
     metaDescription:
-      'Geprüfte Finanzberater und Honorarberater in Deutschland finden: nach Ort, Spezialisierung und echten Bewertungen filtern.',
+      'Finanzberater und Honorarberater in Deutschland finden: nach Ort, Spezialisierung und echten Bewertungen filtern.',
   },
   buchhalter: {
     slug: 'buchhalter',
@@ -36,7 +36,7 @@ export const CATEGORY_LABELS: Record<Kategorie, CategoryLabel> = {
     akkusativ: 'einen Buchhalter',
     heroClaim: 'Laufende Buchführung und Kontierung — zuverlässig und ortsunabhängig.',
     metaDescription:
-      'Geprüfte Buchhalter und Bilanzbuchhalter in Deutschland finden: nach Ort, Spezialisierung und echten Bewertungen filtern.',
+      'Buchhalter und Bilanzbuchhalter in Deutschland finden: nach Ort, Spezialisierung und echten Bewertungen filtern.',
   },
 };
 

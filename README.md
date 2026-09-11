@@ -1,7 +1,10 @@
 # Fiskalis
 
-Unabhängiges Verzeichnis für geprüfte Steuerberater, Finanzberater und Buchhalter in Deutschland.
-Statisch generiert mit Astro. Inhalte (Anbieter, Bewertungen, Städte, Spezialisierungen, FAQ)
+Unabhängiges Verzeichnis für Steuerberater, Finanzberater und Buchhalter in Deutschland — ein
+indirekter Marktplatz, der Berater mit Mandanten zusammenbringt, die bereits gezielt suchen.
+Fiskalis verifiziert oder zertifiziert Anbieter nicht (siehe "Positionierung" unten), sondern
+listet sie. Statisch generiert mit Astro. Inhalte (Anbieter, Bewertungen, Städte,
+Spezialisierungen, FAQ)
 kommen ausschließlich aus einem Google Sheet, das zur Build-Zeit gelesen wird — kein Supabase,
 keine sonstige bezahlte Backend-Datenbank. Kontakt zu Anbietern, Bewerbungen, Bewertungen und
 Meldungen laufen bewusst **ohne eigenes Formular/Backend** über direkte `mailto:`-Links — siehe
@@ -52,6 +55,25 @@ Cloudflare-Pages-Projekt deployed werden. Die Datenschutzerklärung wurde entspr
 Self-Service-Formulare lassen sich jederzeit als spätere Ausbaustufe nachrüsten (siehe PRD,
 Roadmap Phase 4) — dann wieder mit einem schlanken Worker wie bei Uhrenverzeichnis.de.
 
+## Positionierung: Marktplatz, keine Prüfstelle (Stand 2026-09-11)
+
+Fiskalis prüft, verifiziert oder zertifiziert Anbieter **nicht** — das war ursprünglich als USP
+angedacht (Abgleich mit Steuerberaterverzeichnis/Vermittlerregister, "Geprüft"-Abzeichen), wurde
+aber bewusst wieder entfernt. Der eigentliche USP ist ein indirekter Marktplatz: Berater finden
+hier bereits suchende Mandanten und werden von ihnen gefunden — nicht mehr und nicht weniger.
+Entsprechend wurden entfernt:
+
+- `/wie-wir-pruefen/` (komplette Seite)
+- jedes "✓ Geprüft"-Badge (Karten, Profile, Homepage)
+- alle Formulierungen, die eine Prüfung/Verifizierung suggerieren, in Impressum-nahen Texten,
+  Meta-Descriptions, AGB (§2 hieß vorher "Vertragsschluss & Prüfungsvorbehalt") und
+  Nutzungsbedingungen — dort jetzt stattdessen ein expliziter Disclaimer, dass Fiskalis keine
+  fachliche/berufsrechtliche Prüfung vornimmt.
+
+Das `verifiziert_am`-Feld wurde aus dem Datenmodell (`types.ts`/`buildData.ts`) entfernt; die
+Sheet-Spalte selbst wurde belassen (inert, wird nicht mehr gelesen) statt das produktive Sheet
+unnötig neu hochzuladen.
+
 ## Projektstruktur
 
 - `src/pages/[kategorie]/index.astro` — Kategorie-Übersicht (`/steuerberater/`,
@@ -75,8 +97,7 @@ Roadmap Phase 4) — dann wieder mit einem schlanken Worker wie bei Uhrenverzeic
 - `src/components/BewertungsHinweis.astro` — Pflicht-Hinweis nach § 5b Abs. 3 UWG, direkt am
   Bewertungsmodul eingebaut, nicht nur auf einer separaten Rechtsseite.
 - `src/pages/impressum.astro`, `datenschutz.astro`, `nutzungsbedingungen.astro`,
-  `anbieter-agb.astro`, `inhalt-melden.astro`, `wie-wir-pruefen.astro` — rechtliche Pflichtseiten
-  bzw. E-E-A-T-Methodikseite.
+  `anbieter-agb.astro`, `inhalt-melden.astro` — rechtliche Pflichtseiten.
 - `sheet-template/` — CSV-Vorlagen (fiktive Demo-Daten) + die daraus gebaute
   `Fiskalis-Sheet-Template.xlsx`, identisch zum bereits angelegten Google Sheet.
 
@@ -98,5 +119,6 @@ Roadmap Phase 4) — dann wieder mit einem schlanken Worker wie bei Uhrenverzeic
    `npm run build`, Output-Verzeichnis `dist`) — noch nicht eingerichtet.
 4. **Deploy-Hook bei Sheet-Änderung** — Apps-Script `onEdit`-Trigger im Sheet, ruft den
    Cloudflare-Deploy-Hook auf (gleiches Muster wie bei Uhrenverzeichnis.de).
-5. **Stripe Payment Link** für die Jahres-Listings einrichten (siehe PRD, §8) — aktuell ist die
-   Freischaltung nach Bewerbung ein rein manueller Schritt.
+5. **Stripe Payment Link** für individuell vereinbarte Listing-Gebühren einrichten (Preise werden
+   nicht mehr öffentlich auf der Seite kommuniziert, sondern im persönlichen Gespräch) — aktuell
+   ist die Freischaltung nach Kontaktaufnahme ein rein manueller Schritt.

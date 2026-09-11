@@ -1,27 +1,57 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { ALL_CATEGORIES, CATEGORY_LABELS } from '../lib/categoryLabels';
-import { getProvidersByCategory, getFaqEntriesForPage } from '../lib/buildData';
+import {
+  getProvidersByCategory,
+  getFaqEntriesForPage,
+  getListedProviders,
+  getRatingSummary,
+  primaryKategorie,
+  ratingOf,
+} from '../lib/buildData';
 
 const counts = await Promise.all(
   ALL_CATEGORIES.map(async (k) => ({ kategorie: k, count: (await getProvidersByCategory(k)).length }))
 );
 const faq = await getFaqEntriesForPage('home');
+
+const providers = await getListedProviders();
+
+// Berater-Karussel: ein kompaktes, sich wiederholendes Band echter gelisteter Anbieter —
+// Beweis, dass hier tatsächlich Angebot steht, statt eines abstrakten Verkaufsversprechens.
+const carouselProviders = providers.map((p) => ({
+  name: p.name,
+  kategorie: CATEGORY_LABELS[primaryKategorie(p)].singular,
+  ort: p.ort?.name ?? 'Bundesweit',
+  rating: getRatingSummary(p),
+  href: `/${primaryKategorie(p)}/${p.slug}/`,
+}));
+
+// Testimonials: ausschließlich echte, bereits freigegebene Bewertungen aus dem Sheet —
+// keine erfundenen Zitate.
+const testimonials = providers
+  .flatMap((p) =>
+    p.reviews
+      .filter((r) => r.freigegeben && r.text.length > 30)
+      .map((r) => ({ ...r, rating: ratingOf(r), providerName: p.name }))
+  )
+  .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0) || b.text.length - a.text.length)
+  .slice(0, 4);
 ---
 
 <BaseLayout
-  title="Geprüfte Steuerberater, Finanzberater & Buchhalter"
-  description="Fiskalis ist das unabhängige Verzeichnis für geprüfte Steuerberater, Finanzberater und Buchhalter in Deutschland — mit echten Mandanten-Bewertungen."
+  title="Steuerberater, Finanzberater & Buchhalter finden"
+  description="Fiskalis ist das unabhängige Verzeichnis für Steuerberater, Finanzberater und Buchhalter in Deutschland — mit echten Mandanten-Bewertungen."
   canonicalPath="/"
 >
   <section class="hero">
     <div class="wrap hero__inner">
-      <p class="eyebrow">Fiskalis · unabhängiges Verzeichnis</p>
+      <p class="eyebrow">Fiskalis · Verzeichnis &amp; Marktplatz</p>
       <h1>Finden Sie Ihren nächsten Finanzpartner.</h1>
       <p class="hero__lede">
-        Steuerberater, Finanzberater und Buchhalter, geprüft gegen das öffentliche
-        Steuerberaterverzeichnis und Vermittlerregister — mit echten Bewertungen von Mandanten,
-        die schon dort waren, wo Sie gerade stehen.
+        Das Verzeichnis, in dem Steuerberater, Finanzberater und Buchhalter bereits nach neuen
+        Mandanten suchen — mit echten Bewertungen von Mandanten, die schon dort waren, wo Sie
+        gerade stehen.
       </p>
 
       <div class="hero__selector">
@@ -40,6 +70,44 @@ const faq = await getFaqEntriesForPage('home');
       </div>
     </div>
   </section>
+
+  {
+    carouselProviders.length > 0 && (
+      <section class="carousel" aria-label="Gelistete Anbieter">
+        <div class="carousel__track">
+          {[...carouselProviders, ...carouselProviders].map((p, i) => (
+            <a class="carousel__card" href={p.href} aria-hidden={i >= carouselProviders.length ? 'true' : undefined}>
+              <span class="carousel__kategorie">{p.kategorie}</span>
+              <span class="carousel__name">{p.name}</span>
+              <span class="carousel__meta">
+                {p.ort}
+                {p.rating.average && ` · ★ ${p.rating.average.toFixed(1)}`}
+              </span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    testimonials.length > 0 && (
+      <section class="wrap testimonials">
+        <h2>Was Mandanten sagen</h2>
+        <div class="testimonials__grid">
+          {testimonials.map((t) => (
+            <div class="card testimonials__card">
+              {t.rating && <span class="testimonials__stars">{'★'.repeat(Math.round(t.rating))}</span>}
+              <p class="testimonials__text">„{t.text}"</p>
+              <p class="testimonials__attr">
+                — {t.name}, über <strong>{t.providerName}</strong>
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
 
   <section class="wrap ways">
     <h2>Vier Wege, Fiskalis zu nutzen</h2>
@@ -61,7 +129,7 @@ const faq = await getFaqEntriesForPage('home');
       </div>
       <div class="ways__item">
         <span class="ways__num">04</span>
-        <h3>Von den richtigen Mandanten gefunden werden</h3>
+        <h3>Direkt von suchenden Mandanten gefunden werden</h3>
         <p>Sie sind Steuerberater, Finanzberater oder Buchhalter? <a href="/fuer-anbieter/">Listen Sie sich</a> und werden für genau Ihre Zielgruppe sichtbar.</p>
       </div>
     </div>
@@ -82,16 +150,15 @@ const faq = await getFaqEntriesForPage('home');
     </div>
   </section>
 
-  <section class="wrap methodology">
-    <div class="card methodology__card">
-      <h2>Wie wir prüfen</h2>
+  <section class="wrap marketplace">
+    <div class="card marketplace__card">
+      <h2>Sie sind Berater, keine Suchmaschine?</h2>
       <p>
-        Jeder Eintrag wird vor Freischaltung gegen ein öffentliches Register abgeglichen — das
-        Steuerberaterverzeichnis der Bundessteuerberaterkammer für Steuerberater, das
-        Vermittlerregister für Finanzanlagen- und Honorarberater. Kein Berater kann sich seine
-        eigene Bewertung schreiben oder kaufen.
+        Fiskalis ist ein Marktplatz, kein Prüfsiegel — wir stellen Sie direkt vor Mandanten, die
+        bereits gezielt nach jemandem wie Ihnen suchen. Keine Vermittlungsprovision, kein
+        Zwischenhändler.
       </p>
-      <a href="/wie-wir-pruefen/">Mehr zu unserem Prüfprozess →</a>
+      <a href="/fuer-anbieter/">Mehr für Anbieter →</a>
     </div>
   </section>
 
@@ -173,11 +240,114 @@ const faq = await getFaqEntriesForPage('home');
     text-decoration: none;
   }
 
+  /* ---- Berater-Karussel ---- */
+  .carousel {
+    overflow: hidden;
+    border-bottom: 1px solid var(--color-line);
+    padding: 1.4rem 0;
+    background: var(--color-bg-raised);
+  }
+  .carousel__track {
+    display: flex;
+    gap: 1rem;
+    width: max-content;
+    animation: fiskalis-marquee 50s linear infinite;
+  }
+  .carousel:hover .carousel__track {
+    animation-play-state: paused;
+  }
+  @keyframes fiskalis-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .carousel {
+      overflow-x: auto;
+    }
+    .carousel__track {
+      animation: none;
+    }
+  }
+  .carousel__card {
+    flex: 0 0 auto;
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.8rem 1.1rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-line);
+    background: var(--color-bg-sunken);
+    text-decoration: none;
+    color: var(--color-ink);
+  }
+  .carousel__card:hover {
+    border-color: var(--color-accent);
+  }
+  .carousel__kategorie {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-accent);
+  }
+  .carousel__name {
+    font-weight: 700;
+    font-size: 0.92rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .carousel__meta {
+    font-size: 0.8rem;
+    color: var(--color-ink-faint);
+  }
+
+  /* ---- Testimonials ---- */
+  .testimonials {
+    padding: 3.5rem 0;
+  }
+  .testimonials__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.2rem;
+    margin-top: 2rem;
+  }
+  .testimonials__card {
+    padding: 1.4rem 1.6rem;
+  }
+  .testimonials__stars {
+    color: var(--color-accent);
+    letter-spacing: 1px;
+  }
+  .testimonials__text {
+    margin: 0.6rem 0 1rem;
+    color: var(--color-ink);
+    font-family: var(--font-serif);
+    font-size: 1.02rem;
+    line-height: 1.5;
+  }
+  .testimonials__attr {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-ink-faint);
+  }
+  .testimonials__attr strong {
+    color: var(--color-ink-soft);
+  }
+
   .ways,
   .categories,
-  .methodology,
+  .marketplace,
   .home-faq {
     padding: 3.5rem 0;
+  }
+  .ways {
+    border-top: 1px solid var(--color-line);
   }
   .ways__grid {
     display: grid;
@@ -228,19 +398,19 @@ const faq = await getFaqEntriesForPage('home');
     font-size: 0.9rem;
   }
 
-  .methodology {
+  .marketplace {
     border-top: 1px solid var(--color-line);
   }
-  .methodology__card {
+  .marketplace__card {
     padding: 2rem 2.2rem;
     background: var(--color-accent-soft);
     border-color: var(--color-accent-soft-line, var(--color-line));
   }
-  .methodology__card p {
+  .marketplace__card p {
     color: var(--color-ink-soft);
     max-width: 68ch;
   }
-  .methodology__card a {
+  .marketplace__card a {
     color: var(--color-accent-dark);
     font-weight: 600;
     text-decoration: none;

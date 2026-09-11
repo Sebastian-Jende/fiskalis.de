@@ -24,7 +24,10 @@ const MIN_PROVIDERS_PER_COMBO = 3;
 
 const TIER_SORT_WEIGHT: Record<ListingTier, number> = { premium: 0, standard: 1 };
 
-function ratingOf(review: Review): number | null {
+/** A single review's own average across its three sub-ratings — used both for a
+ * provider's aggregate (see getRatingSummary) and to star-rate one testimonial quote
+ * on its own (see the homepage). */
+export function ratingOf(review: Review): number | null {
   const values = [
     review.bewertung_kommunikation,
     review.bewertung_fachwissen,
@@ -144,7 +147,6 @@ function parseProviderRow(
     gegruendet: parseOptionalNumber(row.gegruendet),
 
     kammer_id: row.kammer_id || null,
-    verifiziert_am: row.verifiziert_am || null,
 
     logo_url: row.logo_url || null,
     listing_tier: (row.listing_tier || 'standard') as ListingTier,
@@ -188,10 +190,10 @@ export async function getAllSpecializations(): Promise<Specialization[]> {
 }
 
 /**
- * All publicly listed providers — both vetted (`approved`) and not-yet-contacted
+ * All publicly listed providers — both live (`approved`) and not-yet-activated
  * (`pending`) entries, so the directory can grow ahead of outreach, same pattern as
- * Uhrenverzeichnis.de. Only `approved` providers get the "Geprüft"-badge (see
- * categoryLabels-adjacent verification check in components). Cached per build.
+ * Uhrenverzeichnis.de. Fiskalis is a pure listing marketplace — `status` is an
+ * operational/moderation flag, never surfaced as a "verified" claim. Cached per build.
  */
 export async function getListedProviders(): Promise<Provider[]> {
   if (cachedProviders) return cachedProviders;

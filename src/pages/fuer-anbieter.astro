@@ -8,7 +8,7 @@ const providerCount = (await getListedProviders()).length;
 
 <BaseLayout
   title="Für Anbieter"
-  description="Listen Sie Ihre Steuerberatung, Finanzberatung oder Buchhaltung auf Fiskalis — 500–1.000 € pro Jahr, keine Vermittlungsprovision."
+  description="Listen Sie Ihre Steuerberatung, Finanzberatung oder Buchhaltung auf Fiskalis und werden Sie von Mandanten gefunden, die bereits gezielt suchen — keine Vermittlungsprovision."
   canonicalPath="/fuer-anbieter/"
 >
   <section class="pro-hero">
@@ -20,49 +20,32 @@ const providerCount = (await getListedProviders()).length;
         Deutschland. Ein Jahres-Listing, keine Vermittlungsprovision — Sie behalten jeden Euro,
         den Ihre Mandanten Ihnen zahlen.
       </p>
-      <a class="btn btn-accent" href="#bewerbung">Jetzt bewerben</a>
+      <a class="btn btn-accent" href="#bewerbung">Jetzt Kontakt aufnehmen</a>
       <p class="pro-hero__stat">{providerCount} Anbieter bereits gelistet</p>
     </div>
   </section>
 
-  <section class="wrap pricing">
-    <h2>Preise</h2>
-    <div class="pricing__grid">
-      <div class="card pricing__card">
-        <h3>Standard</h3>
-        <p class="pricing__price">500 € <span>/ Jahr</span></p>
-        <ul>
-          <li>Vollständiges Profil</li>
-          <li>Bis zu 3 Spezialisierungen</li>
-          <li>Direkte Kontaktdaten im Profil</li>
-          <li>Bewertungsanzeige</li>
-        </ul>
-      </div>
-      <div class="card pricing__card pricing__card--featured">
-        <p class="pricing__badge">Empfohlen</p>
-        <h3>Premium</h3>
-        <p class="pricing__price">1.000 € <span>/ Jahr</span></p>
-        <ul>
-          <li>Alles aus Standard</li>
-          <li>Hervorgehobene Platzierung in der Kategorie-Suche</li>
-          <li>Unbegrenzte Spezialisierungen</li>
-          <li>„Featured" auf zugehörigen Stadt-/Themenseiten</li>
-        </ul>
-      </div>
-    </div>
-    <p class="pricing__note">
+  <section class="wrap included">
+    <h2>Was ein Listing beinhaltet</h2>
+    <ul class="included__list">
+      <li>Eigenes Profil mit Leistungen, Spezialisierungen und Branchen</li>
+      <li>Direkte Kontaktdaten (Telefon, E-Mail, Website) — keine Zwischenschaltung</li>
+      <li>Sichtbarkeit in Kategorie-, Stadt- und Spezialisierungs-Seiten</li>
+      <li>Anzeige echter Mandanten-Bewertungen auf Ihrem Profil</li>
+    </ul>
+    <p class="included__note">
       Keine Vermittlungsprovision, niemals. Was Ihre Mandanten Ihnen zahlen, bleibt zu 100 % bei
-      Ihnen. Wir garantieren keine bestimmte Anzahl an Anfragen — Details in den
-      <a href="/anbieter-agb/">Vertragsbedingungen</a>.
+      Ihnen. Die Konditionen für ein Listing besprechen wir persönlich — schreiben Sie uns
+      einfach, Details in den <a href="/anbieter-agb/">Vertragsbedingungen</a>.
     </p>
   </section>
 
   <section class="wrap process">
     <h2>So funktioniert die Aufnahme</h2>
     <ol class="process__list">
-      <li><strong>Bewerbung senden.</strong> Kurze E-Mail mit den wichtigsten Eckdaten — siehe unten.</li>
-      <li><strong>Wir prüfen.</strong> Abgleich mit dem Steuerberaterverzeichnis der BStBK bzw. dem Vermittlerregister — siehe <a href="/wie-wir-pruefen/">wie wir prüfen</a>.</li>
-      <li><strong>Zahlung &amp; Freischaltung.</strong> Nach Bestätigung erhalten Sie einen Zahlungslink; Ihr Profil geht direkt danach live.</li>
+      <li><strong>Kontakt aufnehmen.</strong> Kurze E-Mail mit den wichtigsten Eckdaten — siehe unten.</li>
+      <li><strong>Kurzes Kennenlerngespräch.</strong> Wir klären Konditionen und ob Fiskalis für Sie passt.</li>
+      <li><strong>Freischaltung.</strong> Ihr Profil geht direkt nach Einigung live.</li>
     </ol>
   </section>
 
@@ -116,63 +99,28 @@ const providerCount = (await getListedProviders()).length;
     color: var(--color-ink-faint);
   }
 
-  .pricing {
+  .included {
     padding: 3.5rem 0 2rem;
   }
-  .pricing__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1.5rem;
-  }
-  .pricing__card {
-    padding: 1.8rem 2rem;
-    position: relative;
-  }
-  .pricing__card--featured {
-    border-color: var(--color-accent);
-  }
-  .pricing__badge {
-    position: absolute;
-    top: -0.7rem;
-    right: 1.5rem;
-    background: var(--color-accent);
-    color: var(--color-accent-ink);
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 0.25rem 0.7rem;
-    border-radius: 999px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  .pricing__price {
-    font-family: var(--font-serif);
-    font-size: 2rem;
-    font-weight: 700;
-    margin: 0.5rem 0 1.2rem;
-  }
-  .pricing__price span {
-    font-size: 0.95rem;
-    font-weight: 400;
-    color: var(--color-ink-faint);
-    font-family: var(--font-sans);
-  }
-  .pricing__card ul {
+  .included__list {
     list-style: none;
     padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    font-size: 0.92rem;
+    margin: 1.5rem 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.8rem 1.5rem;
+    max-width: 780px;
+  }
+  .included__list li {
+    font-size: 0.96rem;
     color: var(--color-ink-soft);
   }
-  .pricing__card li::before {
+  .included__list li::before {
     content: '✓ ';
     color: var(--color-teal);
     font-weight: 700;
   }
-  .pricing__note {
+  .included__note {
     margin-top: 1.8rem;
     color: var(--color-ink-faint);
     font-size: 0.88rem;
