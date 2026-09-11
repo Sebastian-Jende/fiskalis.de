@@ -17,15 +17,24 @@ const faq = await getFaqEntriesForPage('home');
 
 const providers = await getListedProviders();
 
-// Berater-Karussel: ein kompaktes, sich wiederholendes Band echter gelisteter Anbieter —
-// Beweis, dass hier tatsächlich Angebot steht, statt eines abstrakten Verkaufsversprechens.
-const carouselProviders = providers.map((p) => ({
-  name: p.name,
-  kategorie: CATEGORY_LABELS[primaryKategorie(p)].singular,
-  ort: p.ort?.name ?? 'Bundesweit',
-  rating: getRatingSummary(p),
-  href: `/${primaryKategorie(p)}/${p.slug}/`,
-}));
+// Hero-Karussel: eine einzelne Karte im Hero, die automatisch durch echte gelistete Anbieter
+// rotiert (Vorbild: samslist.com) — kein Lorem-Ipsum-Platzhalter, sondern reale Sheet-Daten.
+// Kein "Verified"-Badge wie bei Sam's List, siehe Positionierung: Fiskalis listet, prüft nicht.
+const heroMatches = providers.slice(0, 8).map((p) => {
+  const rating = getRatingSummary(p);
+  return {
+    name: p.name,
+    sub: p.tagline ?? CATEGORY_LABELS[primaryKategorie(p)].singular,
+    kategorie: CATEGORY_LABELS[primaryKategorie(p)].singular,
+    ort: p.ort?.name ?? 'Bundesweit',
+    remote: p.bundesweit_remote,
+    ratingAvg: rating.average,
+    ratingCount: rating.count,
+    tags: p.spezialisierungen.slice(0, 3).map((s) => s.name),
+    anforderung: p.min_mandatsgroesse,
+    href: `/${primaryKategorie(p)}/${p.slug}/`,
+  };
+});
 
 // Testimonials: ausschließlich echte, bereits freigegebene Bewertungen aus dem Sheet —
 // keine erfundenen Zitate.
@@ -45,50 +54,140 @@ const testimonials = providers
   canonicalPath="/"
 >
   <section class="hero">
-    <div class="wrap hero__inner">
-      <p class="eyebrow">Fiskalis · Verzeichnis &amp; Marktplatz</p>
-      <h1>Finden Sie Ihren nächsten Finanzpartner.</h1>
-      <p class="hero__lede">
-        Das Verzeichnis, in dem Steuerberater, Finanzberater und Buchhalter bereits nach neuen
-        Mandanten suchen — mit echten Bewertungen von Mandanten, die schon dort waren, wo Sie
-        gerade stehen.
-      </p>
+    <div class="wrap hero__grid">
+      <div class="hero__copy">
+        <p class="eyebrow">Fiskalis · Verzeichnis &amp; Marktplatz</p>
+        <h1>Finden Sie Ihren nächsten Finanzpartner.</h1>
+        <p class="hero__lede">
+          Das Verzeichnis, in dem Steuerberater, Finanzberater und Buchhalter bereits nach neuen
+          Mandanten suchen — mit echten Bewertungen von Mandanten, die schon dort waren, wo Sie
+          gerade stehen.
+        </p>
 
-      <div class="hero__selector">
-        <p class="hero__selector-label">Ich suche…</p>
-        <div class="hero__selector-options">
-          {
-            ALL_CATEGORIES.map((k) => (
-              <a class="hero__selector-option" href={`/${k}/`}>
-                {CATEGORY_LABELS[k].akkusativ}
-                <span>→</span>
-              </a>
-            ))
-          }
+        <div class="hero__selector">
+          <p class="hero__selector-label">Ich suche…</p>
+          <div class="hero__selector-options">
+            {
+              ALL_CATEGORIES.map((k) => (
+                <a class="hero__selector-option" href={`/${k}/`}>
+                  {CATEGORY_LABELS[k].akkusativ}
+                  <span>→</span>
+                </a>
+              ))
+            }
+          </div>
+          <a class="hero__quiz" href="/quiz/">Nicht sicher? In 2 Minuten zum passenden Berater →</a>
         </div>
-        <a class="hero__quiz" href="/quiz/">Nicht sicher? In 2 Minuten zum passenden Berater →</a>
       </div>
+
+      {
+        heroMatches.length > 0 && (
+          <div class="hero__match-wrap">
+            <a class="card hero__match" id="hero-match" href={heroMatches[0].href} aria-live="polite">
+              <div class="hero__match-head">
+                <span class="hero__match-avatar" aria-hidden="true">{heroMatches[0].name.charAt(0)}</span>
+                <div>
+                  <p class="hero__match-name">{heroMatches[0].name}</p>
+                  <p class="hero__match-sub">{heroMatches[0].sub}</p>
+                </div>
+              </div>
+              <span class="badge-pill hero__match-kategorie">{heroMatches[0].kategorie}</span>
+              {heroMatches[0].ratingAvg ? (
+                <p class="hero__match-rating">
+                  <span class="hero__match-stars">★★★★★</span> {heroMatches[0].ratingAvg.toFixed(1)}
+                  <span class="hero__match-count"> · {heroMatches[0].ratingCount} Bewertungen</span>
+                </p>
+              ) : (
+                <p class="hero__match-rating hero__match-rating--empty">Noch keine Bewertungen</p>
+              )}
+              <p class="hero__match-location">
+                {heroMatches[0].ort}
+                {heroMatches[0].remote && ' · Remote möglich'}
+              </p>
+              {heroMatches[0].tags.length > 0 && (
+                <div class="hero__match-tags">
+                  {heroMatches[0].tags.map((t: string) => <span class="tag">{t}</span>)}
+                </div>
+              )}
+              {heroMatches[0].anforderung && (
+                <div class="hero__match-req">
+                  <p class="hero__match-req-label">Mindestanforderung</p>
+                  <p>{heroMatches[0].anforderung}</p>
+                </div>
+              )}
+              <span class="btn btn-secondary hero__match-cta">Profil ansehen →</span>
+            </a>
+          </div>
+        )
+      }
     </div>
   </section>
 
-  {
-    carouselProviders.length > 0 && (
-      <section class="carousel" aria-label="Gelistete Anbieter">
-        <div class="carousel__track">
-          {[...carouselProviders, ...carouselProviders].map((p, i) => (
-            <a class="carousel__card" href={p.href} aria-hidden={i >= carouselProviders.length ? 'true' : undefined}>
-              <span class="carousel__kategorie">{p.kategorie}</span>
-              <span class="carousel__name">{p.name}</span>
-              <span class="carousel__meta">
-                {p.ort}
-                {p.rating.average && ` · ★ ${p.rating.average.toFixed(1)}`}
-              </span>
-            </a>
-          ))}
-        </div>
-      </section>
-    )
-  }
+  <script type="application/json" id="hero-matches" is:inline set:html={JSON.stringify(heroMatches)} />
+
+  <script is:inline>
+    (function () {
+      const dataEl = document.getElementById('hero-matches');
+      const card = document.getElementById('hero-match');
+      if (!dataEl || !card) return;
+      const matches = JSON.parse(dataEl.textContent);
+      if (matches.length < 2) return;
+
+      let index = 0;
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function render(m) {
+        card.href = m.href;
+        const ratingHtml = m.ratingAvg
+          ? `<p class="hero__match-rating"><span class="hero__match-stars">★★★★★</span> ${m.ratingAvg.toFixed(1)}<span class="hero__match-count"> · ${m.ratingCount} Bewertungen</span></p>`
+          : `<p class="hero__match-rating hero__match-rating--empty">Noch keine Bewertungen</p>`;
+        const tagsHtml = m.tags.length
+          ? `<div class="hero__match-tags">${m.tags.map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>`
+          : '';
+        const reqHtml = m.anforderung
+          ? `<div class="hero__match-req"><p class="hero__match-req-label">Mindestanforderung</p><p>${escapeHtml(m.anforderung)}</p></div>`
+          : '';
+        card.innerHTML = `
+          <div class="hero__match-head">
+            <span class="hero__match-avatar" aria-hidden="true">${escapeHtml(m.name.charAt(0))}</span>
+            <div>
+              <p class="hero__match-name">${escapeHtml(m.name)}</p>
+              <p class="hero__match-sub">${escapeHtml(m.sub)}</p>
+            </div>
+          </div>
+          <span class="badge-pill hero__match-kategorie">${escapeHtml(m.kategorie)}</span>
+          ${ratingHtml}
+          <p class="hero__match-location">${escapeHtml(m.ort)}${m.remote ? ' · Remote möglich' : ''}</p>
+          ${tagsHtml}
+          ${reqHtml}
+          <span class="btn btn-secondary hero__match-cta">Profil ansehen →</span>
+        `;
+      }
+
+      function next() {
+        card.classList.add('is-fading');
+        setTimeout(() => {
+          index = (index + 1) % matches.length;
+          render(matches[index]);
+          card.classList.remove('is-fading');
+        }, 220);
+      }
+
+      if (!prefersReduced) {
+        let timer = setInterval(next, 4200);
+        card.addEventListener('mouseenter', () => clearInterval(timer));
+        card.addEventListener('mouseleave', () => {
+          timer = setInterval(next, 4200);
+        });
+      }
+    })();
+  </script>
 
   {
     testimonials.length > 0 && (
@@ -183,8 +282,11 @@ const testimonials = providers
     border-bottom: 1px solid var(--color-line);
     padding: 4rem 0 3.5rem;
   }
-  .hero__inner {
-    max-width: 760px;
+  .hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(300px, 380px);
+    gap: 3rem;
+    align-items: start;
   }
   .hero h1 {
     max-width: 18ch;
@@ -240,71 +342,24 @@ const testimonials = providers
     text-decoration: none;
   }
 
-  /* ---- Berater-Karussel ---- */
-  .carousel {
-    overflow: hidden;
-    border-bottom: 1px solid var(--color-line);
-    padding: 1.4rem 0;
-    background: var(--color-bg-raised);
+  /* ---- Hero-Match-Karte (Wrapper; Inhalt wird per JS ausgetauscht, siehe globaler Block unten) ---- */
+  .hero__match-wrap {
+    position: relative;
   }
-  .carousel__track {
-    display: flex;
-    gap: 1rem;
-    width: max-content;
-    animation: fiskalis-marquee 50s linear infinite;
-  }
-  .carousel:hover .carousel__track {
-    animation-play-state: paused;
-  }
-  @keyframes fiskalis-marquee {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(-50%);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .carousel {
-      overflow-x: auto;
-    }
-    .carousel__track {
-      animation: none;
-    }
-  }
-  .carousel__card {
-    flex: 0 0 auto;
-    width: 220px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    padding: 0.8rem 1.1rem;
-    border-radius: 8px;
-    border: 1px solid var(--color-line);
-    background: var(--color-bg-sunken);
+  .hero__match {
+    display: block;
+    padding: 1.5rem 1.6rem;
     text-decoration: none;
-    color: var(--color-ink);
+    color: inherit;
+    transition:
+      opacity 0.22s ease,
+      transform 0.15s ease;
   }
-  .carousel__card:hover {
-    border-color: var(--color-accent);
+  .hero__match:hover {
+    transform: translateY(-2px);
   }
-  .carousel__kategorie {
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--color-accent);
-  }
-  .carousel__name {
-    font-weight: 700;
-    font-size: 0.92rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .carousel__meta {
-    font-size: 0.8rem;
-    color: var(--color-ink-faint);
+  .hero__match.is-fading {
+    opacity: 0;
   }
 
   /* ---- Testimonials ---- */
@@ -430,5 +485,118 @@ const testimonials = providers
   .home-faq p {
     color: var(--color-ink-soft);
     margin: 0.6rem 0 0;
+  }
+
+  @media (max-width: 860px) {
+    .hero__grid {
+      grid-template-columns: 1fr;
+    }
+    .hero__match-wrap {
+      max-width: 380px;
+    }
+  }
+</style>
+
+<style is:global>
+  /* Hero-Match-Karte: Inhalt wird sowohl beim ersten Server-Render als auch bei jedem
+     automatischen Kartenwechsel per JS (innerHTML) erzeugt — deshalb global statt gescoped,
+     sonst verlieren die JS-erzeugten Elemente nach dem ersten Wechsel ihr Styling
+     (Astros Scoped-CSS-Attribut wird nur beim Build in den Server-Markup geschrieben). */
+  .hero__match-head {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.9rem;
+  }
+  .hero__match-avatar {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--color-accent-soft);
+    color: var(--color-accent-dark);
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hero__match-name {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--color-ink);
+  }
+  .hero__match-sub {
+    margin: 0.1rem 0 0;
+    font-size: 0.85rem;
+    color: var(--color-ink-faint);
+  }
+  .hero__match-kategorie {
+    margin-bottom: 0.8rem;
+  }
+  .hero__match-rating {
+    margin: 0 0 0.5rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+  .hero__match-stars {
+    color: var(--color-accent);
+    letter-spacing: 1px;
+  }
+  .hero__match-count {
+    color: var(--color-ink-faint);
+    font-weight: 400;
+  }
+  .hero__match-rating--empty {
+    color: var(--color-ink-faint);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .hero__match-location {
+    margin: 0 0 0.9rem;
+    font-size: 0.85rem;
+    color: var(--color-ink-soft);
+  }
+  .hero__match-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.9rem;
+  }
+  .hero__match-tags .tag {
+    font-size: 0.72rem;
+    padding: 0.22rem 0.6rem;
+    border-radius: 999px;
+    background: var(--color-bg-sunken);
+    color: var(--color-ink-soft);
+    border: 1px solid var(--color-line);
+  }
+  .hero__match-req {
+    background: var(--color-bg-sunken);
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    margin-bottom: 1.1rem;
+  }
+  .hero__match-req-label {
+    margin: 0 0 0.15rem;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-ink-faint);
+    font-weight: 700;
+  }
+  .hero__match-req p:last-child {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+  .hero__match-cta {
+    display: block;
+    text-align: center;
+    width: 100%;
   }
 </style>
