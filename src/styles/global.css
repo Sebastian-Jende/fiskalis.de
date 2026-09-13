@@ -147,6 +147,17 @@ img {
   box-shadow: var(--shadow-card);
 }
 
+/* ---- preview banner (shown only while PUBLIC_PREVIEW_MODE=true) ---- */
+.preview-banner {
+  margin: 0;
+  padding: 0.6rem 1.5rem;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-dark);
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 /* ---- header / footer ---- */
 
 .site-header {
