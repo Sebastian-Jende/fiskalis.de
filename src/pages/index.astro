@@ -69,15 +69,22 @@ const testimonials = providers
           <div class="hero__selector-options">
             {
               ALL_CATEGORIES.map((k) => (
-                <a class="hero__selector-option" href={`/${k}/`}>
-                  {CATEGORY_LABELS[k].akkusativ}
-                  <span>→</span>
-                </a>
+                <a class="hero__selector-option" href={`/${k}/`}>{CATEGORY_LABELS[k].akkusativ}</a>
               ))
             }
           </div>
-          <a class="hero__quiz" href="/quiz/">Nicht sicher? In 2 Minuten zum passenden Berater →</a>
+          <p class="hero__selector-hint">Wählen Sie eine Option, um zu starten →</p>
         </div>
+
+        <a class="hero__quiz-banner" href="/quiz/">
+          <span class="hero__quiz-btn-wrap">
+            <span class="hero__quiz-btn">✨ In 2 Min. starten</span>
+            <span class="hero__quiz-badge">NEU</span>
+          </span>
+          <span class="hero__quiz-text">
+            Erzählen Sie uns von Ihrem Bedarf — wir zeigen Ihnen passende Berater.
+          </span>
+        </a>
       </div>
 
       {
@@ -297,49 +304,86 @@ const testimonials = providers
     max-width: 58ch;
   }
   .hero__selector {
-    margin-top: 2rem;
-    background: var(--color-bg-raised);
-    border: 1px solid var(--color-line);
-    border-radius: 12px;
-    padding: 1.3rem 1.5rem;
-    box-shadow: var(--shadow-card);
+    margin-top: 2.2rem;
   }
   .hero__selector-label {
-    margin: 0 0 0.8rem;
-    font-weight: 600;
-    color: var(--color-ink-faint);
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    color: var(--color-ink);
   }
   .hero__selector-options {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.6rem;
+    gap: 0.9rem;
   }
   .hero__selector-option {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.65rem 1.1rem;
-    border-radius: 8px;
-    border: 1px solid var(--color-line-strong);
+    padding: 0.9rem 1.4rem;
+    border-radius: 12px;
+    border: 2px solid var(--color-ink);
+    background: var(--color-bg-sunken);
     text-decoration: none;
     color: var(--color-ink);
-    font-weight: 600;
-    font-size: 0.95rem;
+    font-weight: 700;
+    font-size: 1.02rem;
+    transition:
+      background 0.15s ease,
+      color 0.15s ease;
   }
   .hero__selector-option:hover {
-    border-color: var(--color-accent);
-    color: var(--color-accent-dark);
+    background: var(--color-ink);
+    color: var(--color-bg);
   }
-  .hero__quiz {
-    display: inline-block;
-    margin-top: 1rem;
-    color: var(--color-teal);
-    font-weight: 600;
-    font-size: 0.92rem;
+  .hero__selector-hint {
+    margin: 0.9rem 0 0;
+    color: var(--color-ink-faint);
+    font-size: 0.9rem;
+  }
+
+  .hero__quiz-banner {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    margin-top: 1.8rem;
+    padding: 0.55rem 1.7rem 0.55rem 0.55rem;
+    background: var(--color-ink);
+    border-radius: 999px;
     text-decoration: none;
+    max-width: 100%;
+  }
+  .hero__quiz-btn-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .hero__quiz-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: var(--color-bg-raised);
+    color: var(--color-ink);
+    border-radius: 999px;
+    padding: 0.75rem 1.3rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+  .hero__quiz-badge {
+    position: absolute;
+    top: -0.55rem;
+    right: -0.4rem;
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    padding: 0.18rem 0.5rem;
+    border-radius: 999px;
+  }
+  .hero__quiz-text {
+    color: rgba(243, 245, 239, 0.92);
+    font-size: 0.92rem;
+    line-height: 1.4;
   }
 
   /* ---- Hero-Match-Karte (Wrapper; Inhalt wird per JS ausgetauscht, siehe globaler Block unten) ---- */
@@ -493,6 +537,22 @@ const testimonials = providers
     }
     .hero__match-wrap {
       max-width: 380px;
+    }
+  }
+
+  @media (max-width: 560px) {
+    /* A tall stack inside a fully round pill turns into an egg shape — switch to a
+       rounded rectangle with the button above the text instead. */
+    .hero__quiz-banner {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.9rem;
+      border-radius: 20px;
+      padding: 1.2rem 1.3rem;
+    }
+    .hero__quiz-badge {
+      top: -0.6rem;
+      right: -0.5rem;
     }
   }
 </style>
