@@ -205,7 +205,7 @@ img {
   font-weight: 500;
 }
 .site-header__nav a:hover {
-  color: var(--color-accent-dark);
+  color: var(--color-teal);
 }
 .site-header__cta {
   padding: 0.6rem 1.15rem;
