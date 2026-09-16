@@ -190,10 +190,10 @@ export async function getAllSpecializations(): Promise<Specialization[]> {
 }
 
 /**
- * All publicly listed providers — both live (`approved`) and not-yet-activated
- * (`pending`) entries, so the directory can grow ahead of outreach, same pattern as
- * Uhrenverzeichnis.de. Fiskalis is a pure listing marketplace — `status` is an
- * operational/moderation flag, never surfaced as a "verified" claim. Cached per build.
+ * All publicly listed providers — only `approved` entries. Unlike Uhrenverzeichnis.de,
+ * Fiskalis lists real named businesses (name, address, phone) that were researched but
+ * not yet contacted for consent, so `pending` rows must stay hidden until a provider is
+ * actually onboarded and flipped to `approved`. Cached per build.
  */
 export async function getListedProviders(): Promise<Provider[]> {
   if (cachedProviders) return cachedProviders;
@@ -219,7 +219,7 @@ export async function getListedProviders(): Promise<Provider[]> {
   cachedProviders = providerRows
     .map((row) => parseProviderRow(row, citiesBySlug, specsByKey, reviewsBySlug))
     .filter((p): p is Provider => p !== null)
-    .filter((p) => p.status === 'approved' || p.status === 'pending')
+    .filter((p) => p.status === 'approved')
     .sort(sortProviders);
 
   return cachedProviders;
