@@ -14,8 +14,9 @@ interface Props {
 }
 
 const { title, description, canonicalPath, ogImage, index = true } = Astro.props;
-const siteUrl = 'https://fiskalis.de';
+const siteUrl = Astro.site!.origin;
 const canonicalUrl = new URL(canonicalPath, siteUrl).toString();
+const resolvedOgImage = ogImage ?? `${siteUrl}/og-default.png`;
 const plausibleDomain = import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN;
 const previewMode = import.meta.env.PUBLIC_PREVIEW_MODE === 'true';
 const shouldIndex = index && !previewMode;
@@ -49,8 +50,11 @@ const organizationSchema = {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
-    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta property="og:image" content={resolvedOgImage} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={resolvedOgImage} />
 
     <script type="application/ld+json" is:inline set:html={JSON.stringify(organizationSchema)} />
 

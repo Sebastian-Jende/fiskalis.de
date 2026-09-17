@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import WebSiteSchema from '../components/JsonLd/WebSiteSchema.astro';
 import { ALL_CATEGORIES, CATEGORY_LABELS } from '../lib/categoryLabels';
 import {
   getProvidersByCategory,
@@ -53,6 +54,8 @@ const testimonials = providers
   description="Fiskalis ist das unabhängige Verzeichnis für Steuerberater, Finanzberater und Buchhalter in Deutschland — mit echten Mandanten-Bewertungen."
   canonicalPath="/"
 >
+  <WebSiteSchema name="Fiskalis" url={Astro.site!.origin} />
+
   <section class="hero">
     <div class="wrap hero__grid">
       <div class="hero__copy">

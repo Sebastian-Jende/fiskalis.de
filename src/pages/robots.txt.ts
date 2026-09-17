@@ -4,12 +4,12 @@ import type { APIRoute } from 'astro';
 // forces noindex site-wide in BaseLayout.astro, see .env.example. While pitching from the
 // unlisted pages.dev preview, this disallows crawling entirely (defense in depth alongside
 // the per-page noindex tags) and drops the sitemap reference.
-export const GET: APIRoute = () => {
+export const GET: APIRoute = ({ site }) => {
   const previewMode = import.meta.env.PUBLIC_PREVIEW_MODE === 'true';
 
   const body = previewMode
     ? 'User-agent: *\nDisallow: /\n'
-    : 'User-agent: *\nAllow: /\n\nSitemap: https://fiskalis.de/sitemap-index.xml\n';
+    : `User-agent: *\nAllow: /\n\nSitemap: ${site!.origin}/sitemap-index.xml\n`;
 
   return new Response(body, {
     headers: { 'Content-Type': 'text/plain' },

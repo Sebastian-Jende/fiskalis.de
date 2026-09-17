@@ -32,7 +32,7 @@ const { providers, cityCombos, specCombos, faq } = Astro.props;
 const label = CATEGORY_LABELS[kategorie as keyof typeof CATEGORY_LABELS];
 
 const totalReviews = providers.reduce((sum, p) => sum + getRatingSummary(p).count, 0);
-const siteUrl = 'https://fiskalis.de';
+const siteUrl = Astro.site!.origin;
 ---
 
 <BaseLayout
