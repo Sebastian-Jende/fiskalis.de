@@ -37,6 +37,13 @@ const organizationSchema = {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#a9702c" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
+    />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonicalUrl} />
     <meta name="generator" content={Astro.generator} />
@@ -79,7 +86,7 @@ const organizationSchema = {
         <a class="site-header__logo" href="/">
           <span class="mark">F</span> Fiskalis
         </a>
-        <nav class="site-header__nav">
+        <nav class="site-header__nav" id="site-nav">
           {
             ALL_CATEGORIES.map((kat) => (
               <a href={`/${kat}/`}>{CATEGORY_LABELS[kat].plural}</a>
@@ -87,9 +94,33 @@ const organizationSchema = {
           }
           <a href="/fuer-anbieter/">Für Anbieter</a>
         </nav>
-        <a class="btn btn-primary site-header__cta" href="/quiz/">In 2 Min. passenden Berater finden</a>
+        <a class="btn btn-primary site-header__cta" href="/quiz/" aria-label="In 2 Min. passenden Berater finden">
+          <span class="site-header__cta-full" aria-hidden="true">In 2 Min. passenden Berater finden</span>
+          <span class="site-header__cta-short" aria-hidden="true">Quiz starten</span>
+        </a>
+        <button
+          type="button"
+          class="site-header__menu-toggle"
+          aria-expanded="false"
+          aria-controls="site-nav"
+          aria-label="Menü öffnen"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
     </header>
+
+    <script is:inline>
+      const menuToggle = document.querySelector('.site-header__menu-toggle');
+      const siteHeader = document.querySelector('.site-header');
+      menuToggle?.addEventListener('click', () => {
+        const isOpen = siteHeader?.classList.toggle('is-nav-open');
+        menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        menuToggle.setAttribute('aria-label', isOpen ? 'Menü schließen' : 'Menü öffnen');
+      });
+    </script>
 
     <main>
       <slot />
